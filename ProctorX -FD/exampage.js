@@ -18,6 +18,37 @@ let questions = [
 
 let currentIndex = 0;
 let userAnswers = {}; 
+let examSubmitted = false;
+
+// Check if returning from page reload after submission
+window.addEventListener('load', () => {
+    console.log("Page loaded - checking session state");
+    if (sessionStorage.getItem('examSubmitted') === 'true') {
+        console.log("Exam was previously submitted - restoring result view");
+        examSubmitted = true;
+        const score = sessionStorage.getItem('examScore');
+        const total = sessionStorage.getItem('examTotal');
+        
+        if (score && total) {
+            document.querySelector(".main-layout").style.display = "none";
+            document.getElementById("resultOverlay").style.display = "block";
+            document.getElementById("resultBox").style.display = "block";
+            document.getElementById("scoreText").innerText = `Your Score: ${score} / ${total}`;
+            console.log("Results restored from session");
+        }
+    }
+});
+
+// Prevent page reload when exam is submitted
+window.addEventListener('beforeunload', (e) => {
+    if (examSubmitted) {
+        console.log("Exam submitted - allowing page close");
+        return;
+    }
+    // Optionally prevent accidental navigation during exam
+    // e.preventDefault();
+    // e.returnValue = '';
+}); 
 
 //  FETCH FROM DATABASE
 async function loadQuestionsFromDB() {
@@ -134,15 +165,15 @@ document.querySelector('.btn-next').addEventListener('click', () => {
 
 // SUBMIT (FIXED)
 document.querySelector('.btn-submit').addEventListener('click', async (e) => {
-
     e.preventDefault();
+    e.stopPropagation();
+
+    console.log("Submit button clicked");
 
     let answers = [];
 
     questions.forEach(q => {
-
         let selected = userAnswers[q.id];
-
         let selectedOption = "";
 
         if (selected === q.options[0]) selectedOption = "A";
@@ -156,38 +187,88 @@ document.querySelector('.btn-submit').addEventListener('click', async (e) => {
         });
     });
 
-    try {
+    // Mark exam as submitted
+    examSubmitted = true;
+    console.log("Exam marked as submitted");
 
+    // Hide main layout and show result immediately
+    document.querySelector(".main-layout").style.display = "none";
+    document.getElementById("resultOverlay").style.display = "block";
+    document.getElementById("resultBox").style.display = "block";
+    clearInterval(timerInterval);
+    time = 0;
+
+    console.log("Result box displayed");
+    
+    const submitStatus = document.getElementById("submitStatus");
+    submitStatus.innerText = "Submitting answers to server...";
+
+    try {
+        console.log("Sending submit request...");
         const response = await fetch("http://localhost:3000/api/result/submit", {
             method: "POST",
-           headers: {
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${localStorage.getItem("token")}`
-},
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+            },
             body: JSON.stringify({
                 exam_id: 1,
                 answers: answers
             })
         });
 
-        const data = await response.json();
-        console.log(data);
-
+        console.log("Response received:", response.status);
         
+        if (!response.ok) {
+            throw new Error(`Server returned ${response.status}`);
+        }
 
-       document.querySelector(".main-layout").style.display = "none";
-
-        document.getElementById("resultBox").style.display = "block";
+        const data = await response.json();
+        console.log("Response data:", data);
+        
+        // Save to session storage in case of page reload
+        sessionStorage.setItem('examSubmitted', 'true');
+        sessionStorage.setItem('examScore', data.score);
+        sessionStorage.setItem('examTotal', questions.length);
+        
+        submitStatus.innerText = "Results saved successfully!";
 
         document.getElementById("scoreText").innerText =
             `Your Score: ${data.score} / ${questions.length}`;
-            clearInterval(timerInterval);
-            time = 0;
 
     } catch (err) {
-        console.error(err);
-        alert("Failed to save result");
+        console.error("Submit error:", err);
+        submitStatus.innerText = `Error saving results: ${err.message}`;
+        
+        // Show result even if submission fails - use calculated score
+        let score = 0;
+        questions.forEach(q => {
+            if (userAnswers[q.id] === q.correct_answer) {
+                score++;
+            }
+        });
+        
+        // Save to session storage
+        sessionStorage.setItem('examSubmitted', 'true');
+        sessionStorage.setItem('examScore', score);
+        sessionStorage.setItem('examTotal', questions.length);
+        
+        document.getElementById("scoreText").innerText =
+            `Your Score: ${score} / ${questions.length}`;
     }
+
+    return false;
+});
+
+// CONTINUE BUTTON
+document.getElementById('continueBtn').addEventListener('click', () => {
+    console.log("Continue button clicked");
+    // Clear session storage
+    sessionStorage.removeItem('examSubmitted');
+    sessionStorage.removeItem('examScore');
+    sessionStorage.removeItem('examTotal');
+    // Redirect to login page
+    window.location.href = 'Login.html';
 });
 
 function calculateScoreAndSubmit() {
@@ -252,3 +333,25 @@ async function startCamera() {
 }
 
 startCamera();
+
+// Prevent any page reloads after exam is submitted
+window.addEventListener('beforeunload', (e) => {
+    if (examSubmitted) {
+        console.log("Exam submitted - allowing page unload");
+        return;
+    }
+    // Log if page is unloading before exam is submitted
+    console.warn("Page unloading before exam submission");
+});
+
+// Monitor for any navigation attempts
+window.addEventListener('popstate', (e) => {
+    console.warn("Browser navigation detected");
+    if (examSubmitted) {
+        e.preventDefault();
+        history.pushState(null, null, window.location.href);
+    }
+});
+
+// Prevent accidentally going back
+history.pushState(null, null, window.location.href);

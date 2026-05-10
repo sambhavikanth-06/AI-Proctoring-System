@@ -27,12 +27,6 @@
 <button type="button" class="btn-next">Next</button>
 <button type="button" class="btn-submit">Submit Exam</button>
             </div>
-
-            <div id="resultBox" style="display:none; text-align:center; margin-top:20px;">
-    <h2>Exam Finished</h2>
-    <p id="scoreText"></p>
-</div>
-
         </div>
 
         <aside class="exam-sidebar">
@@ -42,6 +36,15 @@
            <div class="grid" id="palette"></div>
             </div>
         </aside>
+    </div>
+    
+    <div id="resultOverlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background-color:rgba(0,0,0,0.5); z-index:999;"></div>
+    
+    <div id="resultBox" style="display:none; text-align:center; margin-top:20px; padding: 40px;">
+        <h2>Exam Finished</h2>
+        <p id="scoreText">Processing your results...</p>
+        <p id="submitStatus" style="font-size: 0.9rem; color: #999; margin-top: 20px;"></p>
+        <button id="continueBtn" class="btn-continue" style="margin-top: 30px;">Continue</button>
     </div>
 </div>
 <script src="exampage.js"></script>

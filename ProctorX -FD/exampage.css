@@ -18,6 +18,7 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    width: 100%;
 }
 
 /* Header Styling */
@@ -29,6 +30,8 @@ body {
     align-items: center;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     z-index: 10;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .exam-title {
@@ -53,6 +56,8 @@ body {
     padding: 20px;
     gap: 20px;
     overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* Question Section */
@@ -167,4 +172,106 @@ body {
     height: 100%;
     object-fit: cover;
     border-radius: 8px;
+}
+
+/* Navigation Buttons */
+.nav-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn-prev, .btn-next, .btn-submit {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-prev, .btn-next {
+    background-color: var(--white);
+    color: var(--primary);
+    border: 1px solid var(--primary);
+}
+
+.btn-prev:hover, .btn-next:hover {
+    background-color: #f0f7ff;
+}
+
+.btn-submit {
+    background-color: var(--success);
+    color: var(--white);
+}
+
+.btn-submit:hover {
+    background-color: #186f32;
+}
+
+/* Result Box */
+#resultBox {
+    background-color: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    padding: 60px 40px;
+    text-align: center;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 600px;
+    width: 90%;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+#resultBox h2 {
+    font-size: 2rem;
+    color: var(--success);
+    margin: 0 0 20px 0;
+}
+
+#scoreText {
+    font-size: 1.5rem;
+    color: var(--text);
+    margin: 0;
+    font-weight: 500;
+}
+
+#submitStatus {
+    font-size: 0.9rem;
+    color: #999;
+    margin-top: 20px !important;
+}
+
+/* Continue Button */
+.btn-continue {
+    padding: 12px 40px;
+    background-color: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+    margin-top: 30px;
+}
+
+.btn-continue:hover {
+    background-color: #1557b0;
+    box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3);
 }
